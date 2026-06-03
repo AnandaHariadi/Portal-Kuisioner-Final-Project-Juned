@@ -12,6 +12,7 @@ import { getDatabase, ref, push, set, onValue, get, child } from "firebase/datab
 const firebaseConfig = {
   apiKey: "AIzaSyAjaeJi3ZHcq6leqc2cIqtXLA0suun_KAs",
   authDomain: "kuisioner-juned.firebaseapp.com",
+  databaseURL: "https://kuisioner-juned-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "kuisioner-juned",
   storageBucket: "kuisioner-juned.firebasestorage.app",
   messagingSenderId: "30432529765",

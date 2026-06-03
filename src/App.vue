@@ -157,7 +157,7 @@ import BiodataForm from './components/BiodataForm.vue'
 import Questionnaire from './components/Questionnaire.vue'
 import FooterMusic from './components/FooterMusic.vue'
 import ResultsModal from './components/ResultsModal.vue'
-import { db, ref as dbRef, push, set, onValue } from '../firebase'
+import { db, ref as dbRef, push, set, onValue } from './firebase'
 
 // Curtain animation
 const showCurtain = ref(true)
@@ -182,27 +182,37 @@ const formatTime = (isoString) => {
 onMounted(() => {
   // Listen data dari Firebase secara realtime
   const submissionsRef = dbRef(db, 'submissions')
-  onValue(submissionsRef, (snapshot) => {
-    const data = snapshot.val()
-    if (data) {
-      const dataArray = Object.values(data).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      liveVoters.value = dataArray.map(item => ({
-        ...item,
-        name: item.censoredName || 'Anonim',
-        time: formatTime(item.timestamp)
-      }))
-    } else {
-      liveVoters.value = []
+  onValue(
+    submissionsRef,
+    (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const dataArray = Object.values(data)
+          .filter((x) => x && typeof x === 'object')
+          .sort((a, b) => {
+            const ta = a?.timestamp ? new Date(a.timestamp).getTime() : 0
+            const tb = b?.timestamp ? new Date(b.timestamp).getTime() : 0
+            return tb - ta
+          })
+
+        liveVoters.value = dataArray.map((item) => ({
+          ...item,
+          name: item.censoredName || 'Anonim',
+          time: formatTime(item.timestamp)
+        }))
+      } else {
+        liveVoters.value = []
+      }
+    },
+    (error) => {
+      console.warn('Belum bisa connect ke Firebase (mungkin config belum diset): ', error?.message || error)
+
+      // Fallback ke localStorage jika firebase gagal
+      // NOTE: ini hanya untuk UI; backend tetap dianggap tidak realtime jika error.
+      const storedVoters = localStorage.getItem('juned_liveVoters')
+      if (storedVoters) liveVoters.value = JSON.parse(storedVoters)
     }
-  }, (error) => {
-    console.warn("Belum bisa connect ke Firebase (mungkin config belum diset): ", error.message)
-    
-    // Fallback ke localStorage jika firebase gagal
-    const storedVoters = localStorage.getItem('juned_liveVoters')
-    if (storedVoters) {
-      liveVoters.value = JSON.parse(storedVoters)
-    }
-  })
+  )
 })
 
 // Particle canvas
