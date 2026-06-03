@@ -212,3 +212,58 @@ body::before {
   background: var(--primary-green);
   transition: width 0.3s ease;
 }
+
+/* ===== RESPONSIVE GLOBALS ===== */
+@media (max-width: 768px) {
+  #app {
+    padding: 1rem 0.5rem;
+    padding-bottom: 100px;
+  }
+  
+  .glass-card {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .landscape-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .btn-primary:last-child, .btn-secondary:last-child {
+    margin-bottom: 0;
+  }
+
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+
+  .form-label {
+    font-size: 0.95rem;
+  }
+  
+  .form-input, .form-select, .form-textarea {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  
+  .glass-card {
+    padding: 1.2rem;
+  }
+}

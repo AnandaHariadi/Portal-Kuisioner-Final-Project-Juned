@@ -290,6 +290,7 @@ const handleDownload = () => {
 
 .table-container {
   flex: 1;
+  overflow-x: auto;
   overflow-y: auto;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
@@ -298,6 +299,7 @@ const handleDownload = () => {
 
 .voters-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -441,5 +443,18 @@ const handleDownload = () => {
 @keyframes modalPopOut {
   0% { transform: scale(1); opacity: 1; }
   100% { transform: scale(0.9); opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 1.5rem;
+  }
+  .admin-prompt {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-input {
+    width: 100%;
+  }
 }
 </style>

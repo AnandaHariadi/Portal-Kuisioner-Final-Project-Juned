@@ -1094,6 +1094,23 @@ const goHome = () => {
   .cbt-header {
     flex-direction: column;
     gap: 1rem;
+    text-align: center;
+  }
+  
+  .cbt-header-left {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .logo-small {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .cbt-footer {
+    flex-direction: column-reverse;
+    gap: 1rem;
+    padding: 1rem;
   }
 }
 </style>
