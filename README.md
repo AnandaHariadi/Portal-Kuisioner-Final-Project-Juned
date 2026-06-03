@@ -68,4 +68,4 @@ Jika Anda ingin melihat cara kerja fitur unduh data (CSV) sebagai Admin:
 
 ---
 
-*Dibuat dengan ❤️ untuk Masa Depan Demokrasi Digital Indonesia.*
+*Dibuat dengan untuk Masa Depan Demokrasi Digital Indonesia.*
