@@ -10,13 +10,13 @@ import { getDatabase, ref, push, set, onValue, get, child } from "firebase/datab
 //    { "rules": { ".read": true, ".write": true } }
 
 const firebaseConfig = {
-  apiKey: "API_KEY_ANDA",
-  authDomain: "PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "PROJECT_ID",
-  storageBucket: "PROJECT_ID.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
+  apiKey: "AIzaSyAjaeJi3ZHcq6leqc2cIqtXLA0suun_KAs",
+  authDomain: "kuisioner-juned.firebaseapp.com",
+  projectId: "kuisioner-juned",
+  storageBucket: "kuisioner-juned.firebasestorage.app",
+  messagingSenderId: "30432529765",
+  appId: "1:30432529765:web:ff47d234cfdce31984258c",
+  measurementId: "G-WQLBKMBTTY"
 };
 
 // Initialize Firebase
