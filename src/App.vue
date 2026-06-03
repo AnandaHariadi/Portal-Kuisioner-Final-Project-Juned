@@ -157,6 +157,7 @@ import BiodataForm from './components/BiodataForm.vue'
 import Questionnaire from './components/Questionnaire.vue'
 import FooterMusic from './components/FooterMusic.vue'
 import ResultsModal from './components/ResultsModal.vue'
+import { db, ref as dbRef, push, set, onValue } from '../firebase'
 
 // Curtain animation
 const showCurtain = ref(true)
@@ -168,12 +169,40 @@ const showResults = ref(false)
 // Live voters data
 const liveVoters = ref([])
 
-onMounted(() => {
-  // Muat data dari localStorage saat aplikasi dimulai
-  const storedVoters = localStorage.getItem('juned_liveVoters')
-  if (storedVoters) {
-    liveVoters.value = JSON.parse(storedVoters)
+const formatTime = (isoString) => {
+  try {
+    const d = new Date(isoString)
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${pad(d.getHours())}:${pad(d.getMinutes())} WIB`
+  } catch {
+    return 'Baru saja'
   }
+}
+
+onMounted(() => {
+  // Listen data dari Firebase secara realtime
+  const submissionsRef = dbRef(db, 'submissions')
+  onValue(submissionsRef, (snapshot) => {
+    const data = snapshot.val()
+    if (data) {
+      const dataArray = Object.values(data).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      liveVoters.value = dataArray.map(item => ({
+        ...item,
+        name: item.censoredName || 'Anonim',
+        time: formatTime(item.timestamp)
+      }))
+    } else {
+      liveVoters.value = []
+    }
+  }, (error) => {
+    console.warn("Belum bisa connect ke Firebase (mungkin config belum diset): ", error.message)
+    
+    // Fallback ke localStorage jika firebase gagal
+    const storedVoters = localStorage.getItem('juned_liveVoters')
+    if (storedVoters) {
+      liveVoters.value = JSON.parse(storedVoters)
+    }
+  })
 })
 
 // Particle canvas
@@ -368,15 +397,7 @@ const submitForm = async () => {
   isSubmitting.value = true
 
   try {
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwYOUR_SCRIPT_ID/exec' 
-    
-    const payload = {
-      timestamp: new Date().toISOString(),
-      ...formData.biodata,
-      ...formData.answers
-    }
-
-    // Simulasi pengiriman data
+    // Simulasi loading UI
     await new Promise(resolve => setTimeout(resolve, 1500))
 
     let nameParts = (formData.biodata.nama || 'Anonim').trim().split(' ')
@@ -388,19 +409,34 @@ const submitForm = async () => {
           censoredName = nameParts[0] + '***'
        }
     }
-    liveVoters.value.unshift({ name: censoredName, time: 'Baru saja' })
-    
-    // Simpan liveVoters ke localStorage
-    localStorage.setItem('juned_liveVoters', JSON.stringify(liveVoters.value))
 
-    // Simpan full data (rekapan Excel) ke localStorage
-    let allSubmissions = []
-    const storedSubmissions = localStorage.getItem('juned_fullSubmissions')
-    if (storedSubmissions) {
-      allSubmissions = JSON.parse(storedSubmissions)
+    const payload = {
+      timestamp: new Date().toISOString(),
+      censoredName: censoredName,
+      ...formData.biodata,
+      ...formData.answers
     }
-    allSubmissions.push(payload)
-    localStorage.setItem('juned_fullSubmissions', JSON.stringify(allSubmissions))
+
+    // Kirim data ke Firebase
+    try {
+      const submissionsRef = dbRef(db, 'submissions')
+      const newSubmissionRef = push(submissionsRef)
+      await set(newSubmissionRef, payload)
+    } catch (e) {
+      console.warn("Gagal mengirim ke Firebase, fallback ke local storage", e)
+      
+      // Fallback jika firebase belum disetup
+      liveVoters.value.unshift({ name: censoredName, time: 'Baru saja', ...payload })
+      localStorage.setItem('juned_liveVoters', JSON.stringify(liveVoters.value))
+
+      let allSubmissions = []
+      const storedSubmissions = localStorage.getItem('juned_fullSubmissions')
+      if (storedSubmissions) {
+        allSubmissions = JSON.parse(storedSubmissions)
+      }
+      allSubmissions.push(payload)
+      localStorage.setItem('juned_fullSubmissions', JSON.stringify(allSubmissions))
+    }
 
     appState.value = 'success'
     window.scrollTo({ top: 0, behavior: 'smooth' })

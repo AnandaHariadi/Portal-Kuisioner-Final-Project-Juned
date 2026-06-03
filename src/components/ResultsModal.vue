@@ -104,14 +104,21 @@ const showAdminPrompt = ref(false)
 const adminPassword = ref('')
 const adminError = ref(false)
 
-const handleDownload = () => {
+const handleDownload = async () => {
   if (adminPassword.value === 'admin123') {
     adminError.value = false
     
-    const stored = localStorage.getItem('juned_fullSubmissions')
     let data = []
-    if (stored) {
-      data = JSON.parse(stored)
+    
+    // Gunakan displayVoters karena App.vue sekarang mengirim full data dari Firebase
+    if (displayVoters.value && displayVoters.value.length > 0) {
+      data = displayVoters.value
+    } else {
+      // Fallback ke localStorage jika kosong
+      const stored = localStorage.getItem('juned_fullSubmissions')
+      if (stored) {
+        data = JSON.parse(stored)
+      }
     }
     
     if (data.length === 0) {
