@@ -1,8 +1,4 @@
-# 🗳️ JUNED - Portal Kuisioner & Voting Digital
-
-![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vue.js&logoColor=4FC08D)
-![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+# JUNED - Portal Kuisioner & Voting Digital
 
 **JUNED** (Jaringan Umum Nasional Elektronik Demokrasi) adalah prototipe website *e-voting* dan kuisioner digital generasi baru yang mengutamakan transparansi dan integritas. Aplikasi ini dirancang sebagai solusi atas krisis kepercayaan publik dalam proses demokrasi dengan menghadirkan antarmuka pengguna yang elegan, modern, dan mudah digunakan.
 
