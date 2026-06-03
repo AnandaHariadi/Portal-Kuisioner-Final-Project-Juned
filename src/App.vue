@@ -407,8 +407,8 @@ const submitForm = async () => {
   isSubmitting.value = true
 
   try {
-    // Simulasi loading UI
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    // Simulasi loading UI (dikurangi supaya submit tidak terasa lama)
+    await new Promise((resolve) => setTimeout(resolve, 200))
 
     let nameParts = (formData.biodata.nama || 'Anonim').trim().split(' ')
     let censoredName = 'Anonim'
