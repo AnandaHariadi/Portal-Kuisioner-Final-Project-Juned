@@ -207,10 +207,9 @@ onMounted(() => {
     (error) => {
       console.warn('Belum bisa connect ke Firebase (mungkin config belum diset): ', error?.message || error)
 
-      // Fallback ke localStorage jika firebase gagal
-      // NOTE: ini hanya untuk UI; backend tetap dianggap tidak realtime jika error.
-      const storedVoters = localStorage.getItem('juned_liveVoters')
-      if (storedVoters) liveVoters.value = JSON.parse(storedVoters)
+      // Hindari localStorage fallback supaya semua akun tetap konsisten sumbernya.
+      // Jika Firebase gagal connect, live data dikosongkan.
+      liveVoters.value = []
     }
   )
 })
