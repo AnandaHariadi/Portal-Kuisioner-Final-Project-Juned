@@ -21,10 +21,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="voters && voters.length === 0">
+              <tr v-if="displayVoters.length === 0">
                 <td colspan="4" style="text-align: center; color: #64748b;">Belum ada partisipan yang terdaftar.</td>
               </tr>
-              <tr v-else v-for="(voter, index) in voters" :key="index">
+              <tr v-else v-for="(voter, index) in displayVoters" :key="index">
                 <td>{{ index + 1 }}</td>
                 <td class="name-text">{{ voter.name }}</td>
                 <td>{{ voter.time }}</td>
@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -69,6 +69,26 @@ const props = defineProps({
     type: Array,
     default: () => []
   }
+})
+
+// When voters prop is empty/not provided, load from localStorage
+const localVoters = ref([])
+
+watch(() => props.isOpen, (newVal) => {
+  if (newVal && (!props.voters || props.voters.length === 0)) {
+    const stored = localStorage.getItem('juned_liveVoters')
+    if (stored) {
+      localVoters.value = JSON.parse(stored)
+    }
+  }
+})
+
+// Use prop voters if available, otherwise use localStorage voters
+const displayVoters = computed(() => {
+  if (props.voters && props.voters.length > 0) {
+    return props.voters
+  }
+  return localVoters.value
 })
 
 const emit = defineEmits(['close'])
