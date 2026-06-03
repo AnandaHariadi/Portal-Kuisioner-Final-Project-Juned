@@ -80,9 +80,14 @@
             <p class="highlight-text">Mendanai website JUNED berarti mendukung masa depan demokrasi digital Indonesia yang lebih transparan, inklusif, dan terpercaya.</p>
           </div>
 
-          <button class="btn-hero-primary modal-action-btn" @click="handleStartFromModal">
-            Coba Webnya Sekarang
-          </button>
+          <div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; align-items: center;">
+            <button class="btn-hero-primary modal-action-btn" @click="handleStartFromModal">
+              Coba Webnya Sekarang
+            </button>
+            <button class="btn-hero-secondary modal-action-btn" @click="handleDemoClick" style="justify-content: center;">
+              Gunakan Akun Demo
+            </button>
+          </div>
         </div>
       </div>
     </transition>
@@ -108,6 +113,10 @@ const handleStart = () => {
 
 const handleStartFromModal = () => {
   window.location.href = 'https://laptdev.nxx.my.id/'
+}
+
+const handleDemoClick = () => {
+  window.location.href = 'https://juned.nxx.my.id/voter/preapproved-demo'
 }
 
 // Generate random styles for particles
