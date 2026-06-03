@@ -585,30 +585,56 @@ const getParticleStyle = (i) => {
   }
   
   .hero-title {
-    font-size: 2.8rem;
+    font-size: 2.5rem;
   }
 
   .hero-subtitle {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    margin-bottom: 2rem;
   }
 
   .hide-mobile {
     display: none;
   }
 
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
   .btn-hero-primary,
   .btn-hero-secondary {
     width: 100%;
-    max-width: 300px;
+    max-width: 100%;
     justify-content: center;
   }
   
   .modal-content {
-    padding: 2rem;
+    padding: 1.5rem;
   }
   
   .modal-logo {
-    width: 180px;
+    width: 150px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .modal-text {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  .highlight-text {
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+  
+  .live-data-btn-wrapper-left {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
   }
 }
 </style>
