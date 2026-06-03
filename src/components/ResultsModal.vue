@@ -122,28 +122,85 @@ const handleDownload = () => {
     }
 
     alert('Verifikasi berhasil! Mengunduh file data_voting_juned.csv...')
-    
-    // Build CSV
-    const headers = Object.keys(data[0])
+
+    // ===== COLUMN MAPPING: key -> label rapi =====
+    const columnMap = [
+      { key: '_no', label: 'No' },
+      { key: 'timestamp', label: 'Waktu Pengisian' },
+      { key: 'nama', label: 'Nama Responden' },
+      { key: 'umur', label: 'Umur' },
+      { key: 'jenisKelamin', label: 'Jenis Kelamin' },
+      { key: 'domisili', label: 'Domisili (Kota/Kabupaten)' },
+      { key: 'pendidikan', label: 'Latar Belakang Pendidikan' },
+      { key: 'q1', label: 'Soal 1 - Pengalaman pertama: Kesan saat pertama kali menggunakan JUNED' },
+      { key: 'q2', label: 'Soal 2 - Tujuan sistem: Apakah JUNED berhasil mencapai voting aman & transparan' },
+      { key: 'q3', label: 'Soal 3 - Kemudahan proses: Apakah proses memilih sederhana & tidak membingungkan' },
+      { key: 'q4', label: 'Soal 4 - Kecepatan layanan: Apakah sistem merespon dengan cepat' },
+      { key: 'q5', label: 'Soal 5 - Keamanan suara: Apakah suara aman & tidak bisa diubah pihak lain' },
+      { key: 'q6', label: 'Soal 6 - Privasi pilihan: Apakah pilihan tetap rahasia' },
+      { key: 'q7', label: 'Soal 7 - Transparansi hasil: Apakah hasil voting transparan tanpa membuka identitas' },
+      { key: 'q8', label: 'Soal 8 - Kepercayaan publik: Apakah bisa meningkatkan kepercayaan terhadap pemilu' },
+      { key: 'q9', label: 'Soal 9 - Studi kasus lokal: Apakah JUNED bisa berjalan lancar di daerah Anda' },
+      { key: 'q10', label: 'Soal 10 - Kejelasan informasi: Apakah penjelasan mudah dipahami' },
+      { key: 'q11', label: 'Soal 11 - Kenyamanan penggunaan: Dibanding cara manual' },
+      { key: 'q12', label: 'Soal 12 - Perlindungan kecurangan: Apakah bisa mencegah memilih dua kali' },
+      { key: 'q13', label: 'Soal 13 - Peran KPU: Apakah KPU bisa menggunakan sistem ini dengan jujur & adil' },
+      { key: 'q14', label: 'Soal 14 - Relevansi digital: Apakah voting digital relevan dengan zaman sekarang' },
+      { key: 'q15', label: 'Soal 15 - Kepuasan keseluruhan: Puas dengan pengalaman menggunakan JUNED' },
+      { key: 'pesan', label: 'Pesan & Saran' }
+    ]
+
+    // ===== FORMAT TIMESTAMP =====
+    const formatTimestamp = (isoString) => {
+      try {
+        const d = new Date(isoString)
+        const pad = (n) => String(n).padStart(2, '0')
+        const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+        const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+        return `${hari[d.getDay()]}, ${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} WIB`
+      } catch {
+        return isoString || '-'
+      }
+    }
+
+    // ===== BUILD CSV =====
     const csvRows = []
-    csvRows.push(headers.join(','))
-    
-    for (const row of data) {
-      const values = headers.map(header => {
-        const val = row[header] === undefined || row[header] === null ? '' : row[header]
+
+    // Header row
+    csvRows.push(columnMap.map(col => `"${col.label}"`).join(','))
+
+    // Data rows
+    data.forEach((row, idx) => {
+      const values = columnMap.map(col => {
+        let val = ''
+        if (col.key === '_no') {
+          val = idx + 1
+        } else if (col.key === 'timestamp') {
+          val = formatTimestamp(row[col.key])
+        } else {
+          val = row[col.key] === undefined || row[col.key] === null ? '-' : row[col.key]
+        }
+        // Escape quotes and wrap in quotes
         const escaped = ('' + val).replace(/"/g, '""')
         return `"${escaped}"`
       })
       csvRows.push(values.join(','))
-    }
-    
-    const csvString = csvRows.join('\n')
+    })
+
+    // Add BOM for Excel UTF-8 compatibility
+    const BOM = '\uFEFF'
+    const csvString = BOM + csvRows.join('\n')
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.style.display = 'none'
     a.href = url
-    a.download = 'data_voting_juned.csv'
+
+    // Filename with date
+    const now = new Date()
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+    a.download = `Rekap_Kuisioner_JUNED_${dateStr}.csv`
+
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
