@@ -107,8 +107,7 @@ const handleStart = () => {
 }
 
 const handleStartFromModal = () => {
-  showAbout.value = false
-  emit('start')
+  window.location.href = 'https://laptdev.nxx.my.id/'
 }
 
 // Generate random styles for particles
