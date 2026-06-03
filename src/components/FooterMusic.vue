@@ -12,49 +12,56 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, onUnmounted } from 'vue'
 
 defineProps({
   playMusic: Boolean
 })
 
 const audioEl = ref(null)
+const hasPlayed = ref(false)
 
-// Use file from public so it can be referenced as /TULUS-Jatuh-Suka-(CeeNaija.com).mp3
+// Use file from public
 const mp3Src = computed(() => '/TULUS-Jatuh-Suka-(CeeNaija.com).mp3')
 
 const START_AT_SECONDS = 23 // 0:23
 
-const tryStartAt = async () => {
+const playAudio = async () => {
   const el = audioEl.value
-  if (!el) return
-
-  // Some browsers may block autoplay; we still try.
-  // Start from 0:23 as requested.
-  el.currentTime = START_AT_SECONDS
+  if (!el || hasPlayed.value) return
 
   try {
+    // Ensure it starts from 0:23
+    if (el.currentTime < START_AT_SECONDS) {
+      el.currentTime = START_AT_SECONDS
+    }
+    
     await el.play()
+    hasPlayed.value = true // Mark as played successfully
+    
+    // Remove listeners to prevent unnecessary calls
+    window.removeEventListener('click', playAudio)
+    window.removeEventListener('touchstart', playAudio)
+    window.removeEventListener('keydown', playAudio)
   } catch (e) {
-    // ignore autoplay restrictions
+    // Browser blocked it; wait for the next user interaction
   }
 }
 
 onMounted(() => {
-  const el = audioEl.value
-  if (!el) return
-
-  // If already ready, start immediately.
-  if (el.readyState >= 1) tryStartAt()
+  // 1. Try to autoplay immediately (might be blocked)
+  playAudio()
+  
+  // 2. Add event listeners so it plays on the user's FIRST interaction
+  window.addEventListener('click', playAudio)
+  window.addEventListener('touchstart', playAudio)
+  window.addEventListener('keydown', playAudio)
 })
 
-watch(
-  () => (audioEl.value ? audioEl.value.readyState : 0),
-  () => {
-    const el = audioEl.value
-    if (!el) return
-    if (el.readyState >= 1) tryStartAt()
-  }
-)
+onUnmounted(() => {
+  window.removeEventListener('click', playAudio)
+  window.removeEventListener('touchstart', playAudio)
+  window.removeEventListener('keydown', playAudio)
+})
 </script>
 
