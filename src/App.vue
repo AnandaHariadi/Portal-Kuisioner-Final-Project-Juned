@@ -396,7 +396,7 @@ const progressPercentage = computed(() => {
   return Math.round((answeredCount / 16) * 100)
 })
 
-const submitForm = async () => {
+const submitForm = () => {
   const unAnswered = Object.keys(formData.answers).find(key => key !== 'pesan' && formData.answers[key] === '')
   if (unAnswered) {
     alert('Masih ada soal pilihan ganda yang belum dijawab. Silakan periksa panel navigasi.')
@@ -405,37 +405,34 @@ const submitForm = async () => {
 
   isSubmitting.value = true
 
-  try {
-    let nameParts = (formData.biodata.nama || 'Anonim').trim().split(' ')
-    let censoredName = 'Anonim'
-    if (nameParts.length > 0 && nameParts[0]) {
-       if (nameParts.length > 1) {
-          censoredName = nameParts[0] + ' ' + nameParts[1].charAt(0).toUpperCase() + '***'
-       } else {
-          censoredName = nameParts[0] + '***'
-       }
-    }
-
-    const payload = {
-      timestamp: new Date().toISOString(),
-      censoredName: censoredName,
-      ...formData.biodata,
-      ...formData.answers
-    }
-
-    // Kirim data ke Firebase (satu-satunya sumber data, tanpa localStorage fallback)
-    const submissionsRef = dbRef(db, 'submissions')
-    const newSubmissionRef = push(submissionsRef)
-    await set(newSubmissionRef, payload)
-
-    appState.value = 'success'
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  } catch (error) {
-    alert('Terjadi kesalahan saat mengirim data.')
-    console.error(error)
-  } finally {
-    isSubmitting.value = false
+  let nameParts = (formData.biodata.nama || 'Anonim').trim().split(' ')
+  let censoredName = 'Anonim'
+  if (nameParts.length > 0 && nameParts[0]) {
+     if (nameParts.length > 1) {
+        censoredName = nameParts[0] + ' ' + nameParts[1].charAt(0).toUpperCase() + '***'
+     } else {
+        censoredName = nameParts[0] + '***'
+     }
   }
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    censoredName: censoredName,
+    ...formData.biodata,
+    ...formData.answers
+  }
+
+  // Fire-and-forget: kirim ke Firebase di background, UI langsung pindah ke success
+  const submissionsRef = dbRef(db, 'submissions')
+  const newSubmissionRef = push(submissionsRef)
+  set(newSubmissionRef, payload).catch((error) => {
+    console.error('Gagal mengirim ke Firebase:', error)
+  })
+
+  // Langsung pindah ke halaman sukses tanpa menunggu response Firebase
+  isSubmitting.value = false
+  appState.value = 'success'
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const goHome = () => {
