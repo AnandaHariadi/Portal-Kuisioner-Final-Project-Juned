@@ -399,7 +399,7 @@ const progressPercentage = computed(() => {
   return Math.round((answeredCount / 16) * 100)
 })
 
-const submitForm = () => {
+const submitForm = async () => {
   const unAnswered = Object.keys(formData.answers).find(key => key !== 'pesan' && formData.answers[key] === '')
   if (unAnswered) {
     alert('Masih ada soal pilihan ganda yang belum dijawab. Silakan periksa panel navigasi.')
