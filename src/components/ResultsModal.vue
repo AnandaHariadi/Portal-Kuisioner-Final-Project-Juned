@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -71,25 +71,8 @@ const props = defineProps({
   }
 })
 
-// When voters prop is empty/not provided, load from localStorage
-const localVoters = ref([])
-
-watch(() => props.isOpen, (newVal) => {
-  if (newVal && (!props.voters || props.voters.length === 0)) {
-    const stored = localStorage.getItem('juned_liveVoters')
-    if (stored) {
-      localVoters.value = JSON.parse(stored)
-    }
-  }
-})
-
-// Use prop voters if available, otherwise use localStorage voters
-const displayVoters = computed(() => {
-  if (props.voters && props.voters.length > 0) {
-    return props.voters
-  }
-  return localVoters.value
-})
+// Langsung gunakan data dari prop voters (sumber: Firebase realtime di App.vue)
+const displayVoters = computed(() => props.voters)
 
 const emit = defineEmits(['close'])
 
@@ -108,18 +91,8 @@ const handleDownload = async () => {
   if (adminPassword.value === 'admin123') {
     adminError.value = false
     
-    let data = []
-    
-    // Gunakan displayVoters karena App.vue sekarang mengirim full data dari Firebase
-    if (displayVoters.value && displayVoters.value.length > 0) {
-      data = displayVoters.value
-    } else {
-      // Fallback ke localStorage jika kosong
-      const stored = localStorage.getItem('juned_fullSubmissions')
-      if (stored) {
-        data = JSON.parse(stored)
-      }
-    }
+    // Data langsung dari Firebase realtime (melalui prop voters)
+    const data = displayVoters.value || []
     
     if (data.length === 0) {
       alert('Belum ada data partisipan yang bisa didownload.')

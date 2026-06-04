@@ -426,26 +426,10 @@ const submitForm = async () => {
       ...formData.answers
     }
 
-    // Kirim data ke Firebase
-    try {
-      const submissionsRef = dbRef(db, 'submissions')
-      const newSubmissionRef = push(submissionsRef)
-      await set(newSubmissionRef, payload)
-    } catch (e) {
-      console.warn("Gagal mengirim ke Firebase, fallback ke local storage", e)
-      
-      // Fallback jika firebase belum disetup
-      liveVoters.value.unshift({ name: censoredName, time: 'Baru saja', ...payload })
-      localStorage.setItem('juned_liveVoters', JSON.stringify(liveVoters.value))
-
-      let allSubmissions = []
-      const storedSubmissions = localStorage.getItem('juned_fullSubmissions')
-      if (storedSubmissions) {
-        allSubmissions = JSON.parse(storedSubmissions)
-      }
-      allSubmissions.push(payload)
-      localStorage.setItem('juned_fullSubmissions', JSON.stringify(allSubmissions))
-    }
+    // Kirim data ke Firebase (satu-satunya sumber data, tanpa localStorage fallback)
+    const submissionsRef = dbRef(db, 'submissions')
+    const newSubmissionRef = push(submissionsRef)
+    await set(newSubmissionRef, payload)
 
     appState.value = 'success'
     window.scrollTo({ top: 0, behavior: 'smooth' })
