@@ -126,7 +126,10 @@
           <h3 class="voters-title">Live Jaringan Blok JUNED</h3>
         </div>
         <div class="voters-list">
-          <div v-if="liveVoters.length === 0" style="text-align: center; color: #64748b; padding: 1rem 0; font-size: 0.9rem;">
+          <div v-if="firebaseError" style="text-align: center; color: #ef4444; padding: 1rem 0; font-size: 0.85rem; font-weight: 500; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5; margin-bottom: 10px;">
+            ⚠️ {{ firebaseError }}
+          </div>
+          <div v-else-if="liveVoters.length === 0" style="text-align: center; color: #64748b; padding: 1rem 0; font-size: 0.9rem;">
             Belum ada partisipan.
           </div>
           <div v-else class="voter-item" v-for="(voter, index) in liveVoters.slice(0, 3)" :key="index">
@@ -205,14 +208,14 @@ onMounted(() => {
       }
     },
     (error) => {
-      console.warn('Belum bisa connect ke Firebase (mungkin config belum diset): ', error?.message || error)
-
-      // Hindari localStorage fallback supaya semua akun tetap konsisten sumbernya.
-      // Jika Firebase gagal connect, live data dikosongkan.
+      console.warn('Firebase error (cek rules database): ', error?.message || error)
+      firebaseError.value = 'Koneksi ke Firebase gagal. Pastikan Realtime Database aktif dan Rules diset ke true.'
       liveVoters.value = []
     }
   )
 })
+
+const firebaseError = ref('')
 
 // Particle canvas
 const particleCanvas = ref(null)
@@ -427,6 +430,7 @@ const submitForm = () => {
   const newSubmissionRef = push(submissionsRef)
   set(newSubmissionRef, payload).catch((error) => {
     console.error('Gagal mengirim ke Firebase:', error)
+    firebaseError.value = 'Data gagal dikirim ke server. Pastikan Database Rules Firebase Anda diset ke true.'
   })
 
   // Langsung pindah ke halaman sukses tanpa menunggu response Firebase
