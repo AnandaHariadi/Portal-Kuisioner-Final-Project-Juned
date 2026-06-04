@@ -425,18 +425,23 @@ const submitForm = () => {
     ...formData.answers
   }
 
-  // Fire-and-forget: kirim ke Firebase di background, UI langsung pindah ke success
+  // Kirim ke Firebase dan tunggu hasilnya supaya tidak ada data yang "ketelan"
   const submissionsRef = dbRef(db, 'submissions')
   const newSubmissionRef = push(submissionsRef)
-  set(newSubmissionRef, payload).catch((error) => {
-    console.error('Gagal mengirim ke Firebase:', error)
-    firebaseError.value = 'Data gagal dikirim ke server. Pastikan Database Rules Firebase Anda diset ke true.'
-  })
 
-  // Langsung pindah ke halaman sukses tanpa menunggu response Firebase
-  isSubmitting.value = false
-  appState.value = 'success'
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  set(newSubmissionRef, payload)
+    .then(() => {
+      // Langsung pindah ke halaman sukses setelah data benar-benar tersimpan
+      appState.value = 'success'
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    })
+    .catch((error) => {
+      console.error('Gagal mengirim ke Firebase:', error)
+      firebaseError.value = 'Data gagal dikirim ke server. Pastikan Realtime Database aktif dan Rules mengizinkan write.'
+    })
+    .finally(() => {
+      isSubmitting.value = false
+    })
 }
 
 const goHome = () => {
