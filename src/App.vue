@@ -407,6 +407,7 @@ const submitForm = async () => {
   }
 
   isSubmitting.value = true
+  firebaseError.value = ''
 
   let nameParts = (formData.biodata.nama || 'Anonim').trim().split(' ')
   let censoredName = 'Anonim'
@@ -421,27 +422,52 @@ const submitForm = async () => {
   const payload = {
     timestamp: new Date().toISOString(),
     censoredName: censoredName,
-    ...formData.biodata,
-    ...formData.answers
+    nama: formData.biodata.nama || 'Anonim',
+    umur: formData.biodata.umur,
+    jenisKelamin: formData.biodata.jenisKelamin,
+    domisili: formData.biodata.domisili,
+    pendidikan: formData.biodata.pendidikan,
+    q1: formData.answers.q1,
+    q2: formData.answers.q2,
+    q3: formData.answers.q3,
+    q4: formData.answers.q4,
+    q5: formData.answers.q5,
+    q6: formData.answers.q6,
+    q7: formData.answers.q7,
+    q8: formData.answers.q8,
+    q9: formData.answers.q9,
+    q10: formData.answers.q10,
+    q11: formData.answers.q11,
+    q12: formData.answers.q12,
+    q13: formData.answers.q13,
+    q14: formData.answers.q14,
+    q15: formData.answers.q15,
+    pesan: formData.answers.pesan || ''
   }
 
-  // Kirim ke Firebase dan tunggu hasilnya supaya tidak ada data yang "ketelan"
-  const submissionsRef = dbRef(db, 'submissions')
-  const newSubmissionRef = push(submissionsRef)
+  console.log('=== FIREBASE SUBMIT DEBUG ===')
+  console.log('Database URL:', db?.app?.options?.databaseURL)
+  console.log('Payload:', JSON.stringify(payload, null, 2))
 
-  set(newSubmissionRef, payload)
-    .then(() => {
-      // Langsung pindah ke halaman sukses setelah data benar-benar tersimpan
-      appState.value = 'success'
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    })
-    .catch((error) => {
-      console.error('Gagal mengirim ke Firebase:', error)
-      firebaseError.value = 'Data gagal dikirim ke server. Pastikan Realtime Database aktif dan Rules mengizinkan write.'
-    })
-    .finally(() => {
-      isSubmitting.value = false
-    })
+  try {
+    const submissionsRef = dbRef(db, 'submissions')
+    const newSubmissionRef = push(submissionsRef)
+    console.log('Writing to path:', newSubmissionRef.toString())
+    
+    await set(newSubmissionRef, payload)
+    
+    console.log('✅ Data berhasil dikirim ke Firebase!')
+    appState.value = 'success'
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } catch (error) {
+    console.error('❌ Gagal mengirim ke Firebase:', error)
+    console.error('Error code:', error?.code)
+    console.error('Error message:', error?.message)
+    alert('Gagal mengirim data ke Firebase!\n\nError: ' + (error?.message || error) + '\n\nPastikan:\n1. Realtime Database sudah diaktifkan\n2. Rules sudah di-set ke { ".read": true, ".write": true }\n3. Database URL sudah benar')
+    firebaseError.value = 'Data gagal dikirim: ' + (error?.message || 'Koneksi ke database gagal')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 const goHome = () => {
