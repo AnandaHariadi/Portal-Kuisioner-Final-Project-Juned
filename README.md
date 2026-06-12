@@ -13,7 +13,7 @@ Proyek ini dibangun sebagai **Final Project** oleh:
 - **Desain UI/UX Modern & Animasi Elegan**: Mulai dari *Splash Screen* dengan efek partikel, tirai transisi (*curtain reveal*), hingga animasi *floating* yang memberikan kesan premium.
 - **Form Biodata & Kuisioner Interaktif**: Validasi formulir interaktif dan sistem multi-langkah (CBT-style) untuk mengisi kuisioner.
 - **Sistem Transparansi (Live Voters)**: Fitur yang memungkinkan publik melihat daftar anonim partisipan yang telah berpartisipasi secara *real-time*.
-- **Penyimpanan Berbasis Local Storage**: Seluruh data riwayat pengisian dan partisipan disimulasikan menggunakan penyimpanan lokal browser, sehingga data tidak hilang saat *refresh*.
+- **Penyimpanan Berbasis Supabase**: Data kuisioner tersimpan di Supabase Postgres dan daftar partisipan tampil secara *real-time* antar perangkat.
 - **Export Data Admin (CSV)**: Sistem khusus admin (dengan password `admin123`) untuk mengunduh rekapitulasi data seluruh partisipan dalam bentuk file Excel/CSV.
 
 ---
@@ -38,12 +38,23 @@ Pastikan Anda sudah menginstal **[Node.js](https://nodejs.org/)** di komputer An
    npm install
    ```
 
-3. **Jalankan server pengembangan (development server):**
+3. **Setup Supabase:**
+   - Buat project di Supabase.
+   - Buka **SQL Editor** lalu jalankan isi file `supabase/schema.sql`.
+   - Ambil **Project URL** dan **anon public key** dari **Project Settings > API**.
+   - Buat file `.env` dari `.env.example`, lalu isi:
+     ```bash
+     VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+     VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+     ```
+   - Di Vercel, masukkan dua environment variable yang sama.
+
+4. **Jalankan server pengembangan (development server):**
    ```bash
    npm run dev
    ```
 
-4. **Buka di Browser:**
+5. **Buka di Browser:**
    Buka URL lokal yang muncul di terminal (biasanya `http://localhost:5173`) di browser Anda.
 
 ---
@@ -64,7 +75,8 @@ Jika Anda ingin melihat cara kerja fitur unduh data (CSV) sebagai Admin:
 - **Framework Frontend**: [Vue 3](https://vuejs.org/) (Composition API / `<script setup>`)
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Styling**: Vanilla CSS3 (Custom Properties, Keyframes, Flexbox/Grid)
-- **State & Storage**: Vue Reactivity System & Browser `localStorage`
+- **Database & Realtime**: [Supabase](https://supabase.com/) Postgres + Realtime
+- **State**: Vue Reactivity System
 
 ---
 

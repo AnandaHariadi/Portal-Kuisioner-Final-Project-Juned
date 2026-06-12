@@ -24,7 +24,7 @@
 
   <transition name="fade" mode="out-in">
     <!-- SPLASH SCREEN -->
-    <SplashScreen v-if="appState === 'splash'" @start="startApp" />
+    <SplashScreen v-if="appState === 'splash'" @start="startApp" @open-results="showResults = true" />
     
     <!-- BIODATA -->
     <div v-else-if="appState === 'biodata'" class="landscape-card">
@@ -126,8 +126,8 @@
           <h3 class="voters-title">Live Jaringan Blok JUNED</h3>
         </div>
         <div class="voters-list">
-          <div v-if="firebaseError" style="text-align: center; color: #ef4444; padding: 1rem 0; font-size: 0.85rem; font-weight: 500; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5; margin-bottom: 10px;">
-            ⚠️ {{ firebaseError }}
+          <div v-if="databaseError" style="text-align: center; color: #ef4444; padding: 1rem 0; font-size: 0.85rem; font-weight: 500; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5; margin-bottom: 10px;">
+            ⚠️ {{ databaseError }}
           </div>
           <div v-else-if="liveVoters.length === 0" style="text-align: center; color: #64748b; padding: 1rem 0; font-size: 0.9rem;">
             Belum ada partisipan.
@@ -150,7 +150,7 @@
   <FooterMusic :playMusic="true" />
 
   <!-- RESULTS MODAL -->
-  <ResultsModal :isOpen="showResults" :voters="liveVoters" @close="showResults = false" />
+  <ResultsModal :isOpen="showResults" :voters="liveVoters" :error="databaseError" @close="showResults = false" />
 </template>
 
 <script setup>
@@ -160,7 +160,7 @@ import BiodataForm from './components/BiodataForm.vue'
 import Questionnaire from './components/Questionnaire.vue'
 import FooterMusic from './components/FooterMusic.vue'
 import ResultsModal from './components/ResultsModal.vue'
-import { db, ref as dbRef, push, set, onValue } from './firebase'
+import { supabase, isSupabaseConfigured } from './supabase'
 
 // Curtain animation
 const showCurtain = ref(true)
@@ -171,6 +171,7 @@ const showResults = ref(false)
 
 // Live voters data
 const liveVoters = ref([])
+let submissionsChannel = null
 
 const formatTime = (isoString) => {
   try {
@@ -182,40 +183,91 @@ const formatTime = (isoString) => {
   }
 }
 
-onMounted(() => {
-  // Listen data dari Firebase secara realtime
-  const submissionsRef = dbRef(db, 'submissions')
-  onValue(
-    submissionsRef,
-    (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        const dataArray = Object.values(data)
-          .filter((x) => x && typeof x === 'object')
-          .sort((a, b) => {
-            const ta = a?.timestamp ? new Date(a.timestamp).getTime() : 0
-            const tb = b?.timestamp ? new Date(b.timestamp).getTime() : 0
-            return tb - ta
-          })
+const mapSubmission = (item) => {
+  const timestamp = item.created_at || item.timestamp
+  return {
+    id: item.id,
+    timestamp,
+    censoredName: item.censored_name || item.censoredName || 'Anonim',
+    nama: item.nama || 'Anonim',
+    umur: item.umur || '',
+    jenisKelamin: item.jenis_kelamin || item.jenisKelamin || '',
+    domisili: item.domisili || '',
+    pendidikan: item.pendidikan || '',
+    q1: item.q1 || '',
+    q2: item.q2 || '',
+    q3: item.q3 || '',
+    q4: item.q4 || '',
+    q5: item.q5 || '',
+    q6: item.q6 || '',
+    q7: item.q7 || '',
+    q8: item.q8 || '',
+    q9: item.q9 || '',
+    q10: item.q10 || '',
+    q11: item.q11 || '',
+    q12: item.q12 || '',
+    q13: item.q13 || '',
+    q14: item.q14 || '',
+    q15: item.q15 || '',
+    pesan: item.pesan || '',
+    name: item.censored_name || item.censoredName || 'Anonim',
+    time: formatTime(timestamp)
+  }
+}
 
-        liveVoters.value = dataArray.map((item) => ({
-          ...item,
-          name: item.censoredName || 'Anonim',
-          time: formatTime(item.timestamp)
-        }))
-      } else {
-        liveVoters.value = []
+const loadSubmissions = async () => {
+  if (!isSupabaseConfigured || !supabase) {
+    databaseError.value = 'Konfigurasi Supabase belum diisi. Set VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY.'
+    liveVoters.value = []
+    return
+  }
+
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.warn('Supabase load error:', error.message)
+    databaseError.value = 'Koneksi ke Supabase gagal: ' + error.message
+    liveVoters.value = []
+    return
+  }
+
+  databaseError.value = ''
+  liveVoters.value = (data || []).map(mapSubmission)
+}
+
+const subscribeSubmissions = () => {
+  if (!isSupabaseConfigured || !supabase) return
+
+  submissionsChannel = supabase
+    .channel('submissions-realtime')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'submissions' },
+      (payload) => {
+        databaseError.value = ''
+        const nextSubmission = mapSubmission(payload.new)
+        liveVoters.value = [
+          nextSubmission,
+          ...liveVoters.value.filter((item) => item.id !== nextSubmission.id)
+        ]
       }
-    },
-    (error) => {
-      console.warn('Firebase error (cek rules database): ', error?.message || error)
-      firebaseError.value = 'Koneksi ke Firebase gagal. Pastikan Realtime Database aktif dan Rules diset ke true.'
-      liveVoters.value = []
-    }
-  )
+    )
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        databaseError.value = 'Realtime Supabase terputus. Cek RLS, publication realtime, dan koneksi internet.'
+      }
+    })
+}
+
+onMounted(() => {
+  loadSubmissions()
+  subscribeSubmissions()
 })
 
-const firebaseError = ref('')
+const databaseError = ref('')
 
 // Particle canvas
 const particleCanvas = ref(null)
@@ -358,6 +410,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (animFrameId) cancelAnimationFrame(animFrameId)
+  if (submissionsChannel && supabase) supabase.removeChannel(submissionsChannel)
 })
 
 const startApp = () => {
@@ -407,7 +460,7 @@ const submitForm = async () => {
   }
 
   isSubmitting.value = true
-  firebaseError.value = ''
+  databaseError.value = ''
 
   let nameParts = (formData.biodata.nama || 'Anonim').trim().split(' ')
   let censoredName = 'Anonim'
@@ -420,11 +473,11 @@ const submitForm = async () => {
   }
 
   const payload = {
-    timestamp: new Date().toISOString(),
-    censoredName: censoredName,
+    created_at: new Date().toISOString(),
+    censored_name: censoredName,
     nama: formData.biodata.nama || 'Anonim',
     umur: formData.biodata.umur,
-    jenisKelamin: formData.biodata.jenisKelamin,
+    jenis_kelamin: formData.biodata.jenisKelamin,
     domisili: formData.biodata.domisili,
     pendidikan: formData.biodata.pendidikan,
     q1: formData.answers.q1,
@@ -445,26 +498,29 @@ const submitForm = async () => {
     pesan: formData.answers.pesan || ''
   }
 
-  console.log('=== FIREBASE SUBMIT DEBUG ===')
-  console.log('Database URL:', db?.app?.options?.databaseURL)
+  console.log('=== SUPABASE SUBMIT DEBUG ===')
   console.log('Payload:', JSON.stringify(payload, null, 2))
 
   try {
-    const submissionsRef = dbRef(db, 'submissions')
-    const newSubmissionRef = push(submissionsRef)
-    console.log('Writing to path:', newSubmissionRef.toString())
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Konfigurasi Supabase belum diisi. Set VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY.')
+    }
+
+    const { error } = await supabase
+      .from('submissions')
+      .insert(payload)
+
+    if (error) throw error
     
-    await set(newSubmissionRef, payload)
-    
-    console.log('✅ Data berhasil dikirim ke Firebase!')
+    console.log('Data berhasil dikirim ke Supabase.')
     appState.value = 'success'
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (error) {
-    console.error('❌ Gagal mengirim ke Firebase:', error)
+    console.error('Gagal mengirim ke Supabase:', error)
     console.error('Error code:', error?.code)
     console.error('Error message:', error?.message)
-    alert('Gagal mengirim data ke Firebase!\n\nError: ' + (error?.message || error) + '\n\nPastikan:\n1. Realtime Database sudah diaktifkan\n2. Rules sudah di-set ke { ".read": true, ".write": true }\n3. Database URL sudah benar')
-    firebaseError.value = 'Data gagal dikirim: ' + (error?.message || 'Koneksi ke database gagal')
+    alert('Gagal mengirim data ke Supabase!\n\nError: ' + (error?.message || error) + '\n\nPastikan:\n1. VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY sudah diisi\n2. Tabel submissions sudah dibuat\n3. RLS policy insert/select sudah aktif\n4. Realtime sudah mengaktifkan tabel submissions')
+    databaseError.value = 'Data gagal dikirim: ' + (error?.message || 'Koneksi ke database gagal')
   } finally {
     isSubmitting.value = false
   }

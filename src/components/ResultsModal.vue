@@ -21,7 +21,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="displayVoters.length === 0">
+              <tr v-if="error">
+                <td colspan="4" class="error-cell">{{ error }}</td>
+              </tr>
+              <tr v-else-if="displayVoters.length === 0">
                 <td colspan="4" style="text-align: center; color: #64748b;">Belum ada partisipan yang terdaftar.</td>
               </tr>
               <tr v-else v-for="(voter, index) in displayVoters" :key="index">
@@ -68,10 +71,14 @@ const props = defineProps({
   voters: {
     type: Array,
     default: () => []
+  },
+  error: {
+    type: String,
+    default: ''
   }
 })
 
-// Langsung gunakan data dari prop voters (sumber: Firebase realtime di App.vue)
+// Langsung gunakan data dari prop voters (sumber: Supabase realtime di App.vue)
 const displayVoters = computed(() => props.voters)
 
 const emit = defineEmits(['close'])
@@ -91,7 +98,7 @@ const handleDownload = async () => {
   if (adminPassword.value === 'admin123') {
     adminError.value = false
     
-    // Data langsung dari Firebase realtime (melalui prop voters)
+    // Data langsung dari Supabase realtime (melalui prop voters)
     const data = displayVoters.value || []
     
     if (data.length === 0) {
@@ -398,6 +405,13 @@ const handleDownload = async () => {
   font-size: 0.9rem;
   margin-top: 10px;
   font-weight: 500;
+}
+
+.error-cell {
+  text-align: center;
+  color: #ef4444 !important;
+  background: #fee2e2;
+  font-weight: 600;
 }
 
 /* Modal Animations */

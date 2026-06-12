@@ -24,7 +24,7 @@
       <!-- Left Content (Text) -->
       <div class="hero-left">
         <div class="live-data-btn-wrapper-left">
-          <button class="btn-live-data" @click="showResults = true">
+          <button class="btn-live-data" @click="openResults">
             <span class="pulse-dot"></span>
             Lihat Siapa Saja Yang Mengisi
           </button>
@@ -91,24 +91,22 @@
         </div>
       </div>
     </transition>
-
-    <!-- RESULTS MODAL -->
-    <ResultsModal :isOpen="showResults" @close="showResults = false" />
-
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import ResultsModal from './ResultsModal.vue'
 
-const emit = defineEmits(['start'])
+const emit = defineEmits(['start', 'open-results'])
 
 const showAbout = ref(false)
-const showResults = ref(false)
 
 const handleStart = () => {
   emit('start')
+}
+
+const openResults = () => {
+  emit('open-results')
 }
 
 const handleStartFromModal = () => {
