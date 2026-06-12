@@ -43,7 +43,7 @@
           </button>
           <div class="about-btn-wrapper" style="position: relative; display: inline-block;">
             <div class="pointer-note">
-              💡 Klik di sini dulu untuk lihat demo web!
+              Klik di sini dulu untuk lihat demo web!
             </div>
             <button class="btn-hero-secondary" @click="showAbout = true">
               <img src="/logo.png" alt="" class="btn-logo-small" />
