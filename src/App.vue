@@ -245,14 +245,23 @@ const subscribeSubmissions = () => {
     .channel('submissions-realtime')
     .on(
       'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'submissions' },
+      { event: '*', schema: 'public', table: 'submissions' },
       (payload) => {
         databaseError.value = ''
-        const nextSubmission = mapSubmission(payload.new)
-        liveVoters.value = [
-          nextSubmission,
-          ...liveVoters.value.filter((item) => item.id !== nextSubmission.id)
-        ]
+        if (payload.eventType === 'INSERT') {
+          const nextSubmission = mapSubmission(payload.new)
+          liveVoters.value = [
+            nextSubmission,
+            ...liveVoters.value.filter((item) => item.id !== nextSubmission.id)
+          ]
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedSubmission = mapSubmission(payload.new)
+          liveVoters.value = liveVoters.value.map(item => 
+            item.id === updatedSubmission.id ? updatedSubmission : item
+          )
+        } else if (payload.eventType === 'DELETE') {
+          liveVoters.value = liveVoters.value.filter(item => item.id !== payload.old.id)
+        }
       }
     )
     .subscribe((status) => {
