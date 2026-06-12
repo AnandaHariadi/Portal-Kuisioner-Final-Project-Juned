@@ -41,10 +41,15 @@
           <button class="btn-hero-primary" @click="handleStart">
             Mulai Kuisioner
           </button>
-          <button class="btn-hero-secondary" @click="showAbout = true">
-            <img src="/logo.png" alt="" class="btn-logo-small" />
-            Tentang JUNED
-          </button>
+          <div class="about-btn-wrapper" style="position: relative; display: inline-block;">
+            <div class="pointer-note">
+              💡 Klik di sini dulu untuk lihat demo web!
+            </div>
+            <button class="btn-hero-secondary" @click="showAbout = true">
+              <img src="/logo.png" alt="" class="btn-logo-small" />
+              Tentang JUNED
+            </button>
+          </div>
         </div>
       </div>
 
@@ -110,7 +115,7 @@ const openResults = () => {
 }
 
 const handleStartFromModal = () => {
-  window.location.href = 'https://laptdev.nxx.my.id/'
+  window.location.href = 'https://juned.nxx.my.id/'
 }
 
 const handleDemoClick = () => {
@@ -321,6 +326,40 @@ const getParticleStyle = (i) => {
   color: var(--secondary-green);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.pointer-note {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fde047; /* yellow-300 */
+  color: #854d0e; /* yellow-800 */
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(253, 224, 71, 0.4);
+  animation: bounceNote 2s infinite ease-in-out;
+  z-index: 10;
+}
+
+.pointer-note::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0;
+  border-style: solid;
+  border-color: #fde047 transparent transparent transparent;
+}
+
+@keyframes bounceNote {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -8px); }
 }
 
 .btn-logo-small {
